@@ -85,165 +85,13 @@ const int NN = 2e5 + 5;
 
 // int a[N];
 
-//___________________________SOLUTION_BEGINS_HERE_______________________________
-vi tPre; // keep N = n, n is size of array
-vi lazyPre;
-
-void buildPre(const vi &a, int v, int tl, int tr)
-{ // v = 1, tl = 0, tr = n-1
-    if (tl == tr)
-    {
-        tPre[v] = a[tl];
-    }
-    else
-    {
-        int mid = tl + (tr - tl) / 2;
-
-        buildPre(a, 2 * v, tl, mid);
-        buildPre(a, 2 * v + 1, mid + 1, tr);
-
-        tPre[v] = max(tPre[2 * v], tPre[2 * v + 1]);
-    }
-}
-
-void pushPre(int v)
-{
-    lazyPre[2 * v] += lazyPre[v];
-    lazyPre[2 * v + 1] += lazyPre[v];
-
-    tPre[2 * v] += lazyPre[v];
-    tPre[2 * v + 1] += lazyPre[v];
-
-    lazyPre[v] = 0;
-}
-
-int maxPresum(int v, int tl, int tr, int l, int r)
-{
-    if (l > r)
-        return -1e16;
-
-    if ((l == tl) && (r == tr))
-    {
-        return tPre[v];
-    }
-
-    else
-    {
-        pushPre(v);
-
-        int mid = tl + (tr - tl) / 2;
-
-        return max(maxPresum(2 * v, tl, mid, l, min(mid, r)),
-                   maxPresum(2 * v + 1, mid + 1, tr, max(l, mid + 1), r));
-    }
-}
-
-void updatePre(int v, int tl, int tr, int l, int r, int val)
-{
-    if (l > r)
-        return;
-
-    if ((tl == l) and (tr == tr))
-    {
-        tPre[v] += val;
-        lazyPre[v] += val;
-    }
-    else
-    {
-        pushPre(v);
-
-        int mid = tl + (tr - tl) / 2;
-
-        updatePre(2 * v + 1, mid + 1, tr, max(l, mid + 1), r, val);
-        updatePre(2 * v, tl, mid, l, min(r, mid), val);
-
-        tPre[v] = max(tPre[2 * v], tPre[2 * v + 1]);
-    }
-}
-
-vi tSuf; // keep N = n, n is size of array
-vi lazySuf;
-
-void buildSuf(const vi &a, int v, int tl, int tr)
-{ // v = 1, tl = 0, tr = n-1
-    if (tl == tr)
-    {
-        tSuf[v] = a[tl];
-    }
-    else
-    {
-        int mid = tl + (tr - tl) / 2;
-
-        buildSuf(a, 2 * v, tl, mid);
-        buildSuf(a, 2 * v + 1, mid + 1, tr);
-
-        tSuf[v] = max(tSuf[2 * v], tSuf[2 * v + 1]);
-    }
-}
-
-void pushSuf(int v)
-{
-    lazySuf[2 * v] += lazySuf[v];
-    lazySuf[2 * v + 1] += lazySuf[v];
-
-    tSuf[2 * v] += lazySuf[v];
-    tSuf[2 * v + 1] += lazySuf[v];
-
-    lazySuf[v] = 0;
-}
-
-int maxSufsum(int v, int tl, int tr, int l, int r)
-{
-    if (l > r)
-        return -1e16;
-
-    if ((l == tl) && (r == tr))
-    {
-        return tSuf[v];
-    }
-
-    else
-    {
-        pushSuf(v);
-
-        int mid = tl + (tr - tl) / 2;
-
-        return max(maxSufsum(2 * v, tl, mid, l, min(mid, r)),
-                   maxSufsum(2 * v + 1, mid + 1, tr, max(l, mid + 1), r));
-    }
-}
-
-void updateSuf(int v, int tl, int tr, int l, int r, int val)
-{
-    if (l > r)
-        return;
-
-    if ((tl == l) and (tr == tr))
-    {
-        deb(val);
-        tSuf[v] += val;
-        lazySuf[v] += val;
-    }
-    else
-    {
-        pushSuf(v);
-
-        int mid = tl + (tr - tl) / 2;
-
-        updateSuf(2 * v + 1, mid + 1, tr, max(l, mid + 1), r, val);
-        updateSuf(2 * v, tl, mid, l, min(r, mid), val);
-
-        tSuf[v] = max(tSuf[2 * v], tSuf[2 * v + 1]);
-    }
-}
-
-vi t; // keep N = n, n is size of array
+vvi t; // max sub, max pre, max suf, sum
 
 void build(const vi &a, int v, int tl, int tr)
 { // v = 1, tl = 0, tr = n-1
     if (tl == tr)
     {
-        t[v] = a[tl];
+        t[v] = {max(0LL, a[tl]), max(0LL, a[tl]), max(0LL, a[tl]), a[tl]};
     }
     else
     {
@@ -252,49 +100,22 @@ void build(const vi &a, int v, int tl, int tr)
         build(a, 2 * v, tl, mid);
         build(a, 2 * v + 1, mid + 1, tr);
 
-        int midMax = tSuf[2 * v] + tPre[2 * v + 1];
+        t[v][0] = max(t[2 * v][0], t[2 * v + 1][0]);
+        t[v][0] = max(t[v][0], t[2 * v][2] + t[2 * v + 1][1]);
 
-        t[v] = max(t[2 * v], t[2 * v + 1]);
-        t[v] = max(t[v], midMax);
-    }
-}
+        t[v][1] = max(t[2 * v][1], t[2 * v][3] + t[2 * v + 1][1]);
 
-int findAns(int v, int tl, int tr, int l, int r)
-{
-    if (l > r)
-        return -1e16;
+        t[v][2] = max(t[2 * v + 1][2], t[2 * v + 1][3] + t[2 * v][2]);
 
-    if ((l == tl) && (r == tr))
-    {
-        //     deb(v);
-        //     deb(t[v]);
-        return t[v];
-    }
-
-    else
-    {
-        int mid = tl + (tr - tl) / 2;
-
-        int midMax = maxSufsum(2 * v, tl, mid, l, min(mid, r)) +
-                     maxPresum(2 * v + 1, mid + 1, tr, max(l, mid + 1), r);
-
-        int ans = max(findAns(2 * v, tl, mid, l, min(mid, r)),
-                      findAns(2 * v + 1, mid + 1, tr, max(l, mid + 1), r));
-
-        // deb(midMax);
-        // deb(ans);
-
-        return max(ans, midMax);
+        t[v][3] = t[2 * v][3] + t[2 * v + 1][3];
     }
 }
 
 void update(int v, int tl, int tr, int pos, int val)
 {
-
     if (tl == tr)
     {
-
-        t[v] = val;
+        t[v] = {max(0LL, val), max(0LL, val), max(0LL, val), val};
     }
     else
     {
@@ -307,14 +128,13 @@ void update(int v, int tl, int tr, int pos, int val)
         else
             update(2 * v, tl, mid, pos, val);
 
-        int ans = max(t[2 * v], t[2 * v + 1]);
+        t[v][0] = max(t[2 * v][0], t[2 * v + 1][0]);
+        t[v][0] = max(t[v][0], t[2 * v][2] + t[2 * v + 1][1]);
 
-        deb(v);
-        deb(tSuf[2 * v]), deb(tPre[2 * v + 1]);
-        int midMax = tSuf[2 * v] + tPre[2 * v + 1];
-        deb(ans), deb(midMax);
+        t[v][1] = max(t[2 * v][1], t[2 * v][3] + t[2 * v + 1][1]);
 
-        t[v] = max(ans, midMax);
+        t[v][2] = max(t[2 * v + 1][2], t[2 * v + 1][3] + t[2 * v][2]);
+        t[v][3] = t[2 * v][3] + t[2 * v + 1][3];
     }
 }
 
@@ -322,50 +142,24 @@ void solve()
 {
     int n, m, k, inp;
     string s;
-    in(n);
-    //
-    cin >> m;
-    vi vec(n), pre(n);
-    fo(i, n)
-    {
-        cin >> vec[i];
-        pre[i] = (i > 0 ? pre[i - 1] : 0) + vec[i];
-    }
-    vi suf(n);
-    Fo(i, n - 1, -1) suf[i] = (i < n - 1 ? suf[i + 1] : 0) + vec[i];
+    in(n >> m);
+    vi vec(n);
+    fo(i, n) cin >> vec[i];
 
-    t.assign(4 * n, 0);
-    tPre.assign(4 * n, 0);
-    tSuf.assign(4 * n, 0);
+    t.assign(4 * n, vi(4, 0));
 
-    lazyPre.assign(4 * n, 0);
-    lazySuf.assign(4 * n, 0);
-
-    buildPre(pre, 1, 0, n - 1);
-    buildSuf(suf, 1, 0, n - 1);
     build(vec, 1, 0, n - 1);
-    // fo(i, 4 * n) print(t[i]);
 
     while (m--)
     {
-        //
         int pos, x;
         cin >> pos >> x;
         pos--;
 
-        int iniVal = vec[pos];
-        int dif = x - iniVal;
-
-        vec[pos] = x;
-
-        deb(pos);
-
-        updatePre(1, 0, n - 1, pos, n - 1, dif);
-        updateSuf(1, 0, n - 1, 0, pos, dif);
+        //     //
         update(1, 0, n - 1, pos, x);
 
-        int ans = findAns(1, 0, n - 1, 0, n - 1);
-        println(ans);
+        println(t[1][0]);
     }
 }
 int32_t main()
