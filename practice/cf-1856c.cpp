@@ -9,7 +9,7 @@ using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statisti
 template <class T>
 using ordered_multiset = tree<T, null_type, less_equal<T>, rb_tree_tag, tree_order_statistics_node_update>;
 #define ll long long
-// #define int ll
+#define int ll
 typedef int node; // make node whatever you want in o_set
 #define gc getchar_unlocked
 #define fo(i, n) for (int i = 0; i < n; i++)
@@ -87,6 +87,32 @@ const int NN = 2e5 + 5;
 
 //___________________________SOLUTION_BEGINS_HERE_______________________________
 
+bool works(int mid, const vi &vec, int pos, int k)
+{
+
+    int n = vec.size();
+
+    int used = 0;
+
+    bool someoneHelp = false;
+    for (int i = pos; i < n; i++)
+    {
+        int toBecome = mid - (i - pos);
+
+        if (vec[i] >= toBecome)
+        {
+            someoneHelp = true;
+            break;
+        }
+
+        used += (toBecome - vec[i]);
+
+        //
+    }
+
+    return (someoneHelp and used <= k);
+}
+
 void solve()
 {
     int n, m, k, inp;
@@ -101,32 +127,18 @@ void solve()
 
     for (int j = n - 1; j >= 0; j--)
     {
-        int kleft = k, maxnext = 0;
-        for (int i = j; i >= 0; i--)
+        int l = vec[j], r = 1e9;
+
+        while (r - l > 1)
         {
-            //
+            int mid = (l + r) / 2;
 
-            if (maxnext < vec[i])
-            {
-                kleft = k;
-                maxnext = vec[i];
-            }
+            if (works(mid, vec, j, k))
+                l = mid;
             else
-            {
-                int tomake = maxnext + 1;
-
-                int dif = tomake - vec[i];
-
-                if (dif <= kleft)
-                {
-                    kleft -= dif;
-                    maxnext++;
-                }
-                else
-                    break;
-            }
+                r = mid;
         }
-        ans = max(ans, maxnext);
+        ans = max(l, ans);
     }
 
     println(ans);
