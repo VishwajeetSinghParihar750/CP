@@ -139,7 +139,6 @@ void dfsAgain(int v, int p)
         if (dis >= info[i][1])
         {
             info[i][2] = info[i][1];
-
             info[i][0] = v;
             info[i][1] = dis;
         }
