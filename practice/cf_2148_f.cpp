@@ -155,51 +155,114 @@ const int NN = 2e5 + 5;
 
 //___________________________SOLUTION_BEGINS_HERE_______________________________
 
-vi sum(16);
-vi dcnt(16);
-
-// 9 , 99 , 999 ...
-
 void solve()
 {
     int n, m, k, inp;
     string s;
 
-    //
-    cin >> k;
+    cin >> n;
 
-    auto p = lower_bound(dcnt.begin(), dcnt.end(), k);
-
-    if (p == dcnt.begin())
+    vvi a(n);
+    int mx = 0;
+    fo(i, n)
     {
-        println((k * (k + 1)) / 2);
-        return;
+        cin >> k;
+        mx = max(mx, k);
+        fo(j, k)
+        {
+            cin >> inp;
+            a[i].pb(inp);
+        }
     }
 
-    int lvl = p - dcnt.begin();
+    //
+    unordered_set<int> rem, cur;
 
-    n = (POWER(10ll, lvl) - 1) + (k - *(p - 1)) / (lvl + 1);
+    fo(i, n) rem.insert(i);
 
-    int rem = (k - *(p - 1)) % (lvl + 1);
+    // deb(mx);
 
-    int ans = 0;
-    for (auto fn = to_string(n + 1); rem > 0; rem--)
-        ans += fn[rem - 1] - '0';
-
-    auto fans = [](auto self, int n) -> int
+    vi ans;
+    bool oncur = 0;
+    fo(i, mx)
     {
-        int lvl = to_string(n).size() - 1;
-        if (lvl == 0)
-            return (n * (n + 1)) / 2;
+        // deb(i);
+        if (cur.empty())
+        {
+            int mn = 1e7;
+            for (auto it = rem.begin(); it != rem.end();)
+            {
+                if (a[*it].size() <= i)
+                {
+                    it = rem.erase(it);
+                    continue;
+                }
 
-        int tenp = POWER(10ll, lvl);
+                if (a[*it][i] < mn)
+                {
+                    mn = min(mn, a[*it][i]);
+                    cur = {*it};
+                }
+                else if (a[*it][i] == mn)
+                {
+                    cur.insert(*it);
+                }
 
-        return (sum[lvl - 1] * (n / tenp)) +
-               ((((n / tenp - 1) * (n / tenp)) / 2) * tenp) +
-               (n / tenp * (n % tenp + 1)) +
-               self(self, n % tenp);
-    };
-    println(ans + fans(fans, n));
+                it++;
+            }
+            ans.pb(mn);
+        }
+        else
+        {
+            unordered_set<int> newcur;
+            int mn = 1e7;
+            for (auto it = cur.begin(); it != cur.end(); it++)
+            {
+                if (a[*it][i] < mn)
+                {
+                    mn = min(mn, a[*it][i]);
+                    newcur = {*it};
+                }
+                else if (a[*it][i] == mn)
+                {
+                    newcur.insert(*it);
+                }
+            }
+
+            ans.pb(mn);
+            cur = move(newcur);
+        }
+
+        bool out = false;
+        for (auto v : cur)
+        {
+            if (a[v].size() == i + 1)
+            {
+                out = true;
+                cur.clear();
+                break;
+            }
+        }
+        if (out)
+            continue;
+
+        if (cur.size() == 1)
+        {
+            for (int j = i + 1; j < a[*cur.begin()].size(); j++)
+            {
+                ans.pb(a[*cur.begin()][j]);
+            }
+            i = a[*cur.begin()].size() - 1;
+
+            cur.clear();
+        }
+
+        // deb(i);
+    }
+
+    for (auto i : ans)
+        print(i);
+    println("");
 }
 int32_t main()
 {
@@ -213,16 +276,6 @@ int32_t main()
 
     cerr << fixed << setprecision(10);
     auto start = std::chrono::high_resolution_clock::now();
-
-    sum[0] = 45;
-    dcnt[0] = 9;
-
-    for (int i = 1, pro = 10; i < 16; i++, pro *= 10)
-    {
-        sum[i] = sum[i - 1] * 10 + sum[0] * pro;
-
-        dcnt[i] = (i + 1) * pro * 9 + dcnt[i - 1];
-    }
 
     int T = 1;
     in(T);

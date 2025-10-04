@@ -154,52 +154,164 @@ const int NN = 2e5 + 5;
 // int a[N];
 
 //___________________________SOLUTION_BEGINS_HERE_______________________________
+struct mint
+{
+    int x;
 
-vi sum(16);
-vi dcnt(16);
+    mint() { x = 0; }
+    mint(int32_t xx)
+    {
+        x = xx % MOD;
+        if (x < 0)
+            x += MOD;
+    }
+    mint(long long xx)
+    {
+        x = xx % MOD;
+        if (x < 0)
+            x += MOD;
+    }
 
-// 9 , 99 , 999 ...
+    int val() { return x; }
+
+    mint &operator++()
+    {
+        x++;
+        if (x == MOD)
+            x = 0;
+        return *this;
+    }
+    mint &operator--()
+    {
+        if (x == 0)
+            x = MOD;
+        x--;
+        return *this;
+    }
+    mint operator++(int32_t)
+    {
+        mint result = *this;
+        ++*this;
+        return result;
+    }
+    mint operator--(int32_t)
+    {
+        mint result = *this;
+        --*this;
+        return result;
+    }
+
+    mint &operator+=(const mint &b)
+    {
+        x += b.x;
+        if (x >= MOD)
+            x -= MOD;
+        return *this;
+    }
+    mint &operator-=(const mint &b)
+    {
+        x -= b.x;
+        if (x < 0)
+            x += MOD;
+        return *this;
+    }
+    mint &operator*=(const mint &b)
+    {
+        long long z = x;
+        z *= b.x;
+        z %= MOD;
+        x = (int)z;
+        return *this;
+    }
+    mint operator+() const { return *this; }
+    mint operator-() const { return mint() - *this; }
+
+    mint operator/=(const mint &b)
+    {
+        return *this = *this * b.inv();
+    }
+
+    mint power(long long n) const
+    {
+        mint ok = *this, r = 1;
+        while (n)
+        {
+            if (n & 1)
+            {
+                r *= ok;
+            }
+            ok *= ok;
+            n >>= 1;
+        }
+        return r;
+    }
+
+    mint inv() const
+    {
+        return power(MOD - 2);
+    }
+
+    friend mint operator+(const mint &a, const mint &b) { return mint(a) += b; }
+    friend mint operator-(const mint &a, const mint &b) { return mint(a) -= b; }
+    friend mint operator*(const mint &a, const mint &b) { return mint(a) *= b; }
+    friend mint operator/(const mint &a, const mint &b) { return mint(a) /= b; }
+    friend bool operator==(const mint &a, const mint &b) { return a.x == b.x; }
+    friend bool operator!=(const mint &a, const mint &b) { return a.x != b.x; }
+
+    friend std::ostream &operator<<(std::ostream &os, const mint &m)
+    {
+        os << m.x;
+        return os;
+    }
+
+    friend std::istream &operator>>(std::istream &is, mint &m)
+    {
+        is >> m.x;
+        return is;
+    }
+
+    explicit operator bool() const { return x != 0; }
+};
 
 void solve()
 {
     int n, m, k, inp;
     string s;
-
     //
-    cin >> k;
+    cin >> n;
 
-    auto p = lower_bound(dcnt.begin(), dcnt.end(), k);
+    vector dp(n + 1, vector(301, vector<mint>(301)));
 
-    if (p == dcnt.begin())
+    dp[0][0][0] = 1;
+
+    vi a(n + 1);
+    fo(i, n) cin >> a[i + 1];
+
+    mint ans = 0;
+
+    for (int i = 1; i <= n; i++)
     {
-        println((k * (k + 1)) / 2);
-        return;
+        dp[i] = dp[i - 1];
+        for (int mx = 0; mx <= 300; mx++)
+        {
+            for (int l = 0; l <= mx; l++)
+            {
+
+                if (a[i] >= mx)
+                    dp[i][a[i]][l] += dp[i - 1][mx][l];
+                else if (a[i] < mx && a[i] >= l)
+                    dp[i][mx][a[i]] += dp[i - 1][mx][l];
+            }
+        }
     }
 
-    int lvl = p - dcnt.begin();
-
-    n = (POWER(10ll, lvl) - 1) + (k - *(p - 1)) / (lvl + 1);
-
-    int rem = (k - *(p - 1)) % (lvl + 1);
-
-    int ans = 0;
-    for (auto fn = to_string(n + 1); rem > 0; rem--)
-        ans += fn[rem - 1] - '0';
-
-    auto fans = [](auto self, int n) -> int
+    for (int mx = 0; mx <= 300; mx++)
     {
-        int lvl = to_string(n).size() - 1;
-        if (lvl == 0)
-            return (n * (n + 1)) / 2;
-
-        int tenp = POWER(10ll, lvl);
-
-        return (sum[lvl - 1] * (n / tenp)) +
-               ((((n / tenp - 1) * (n / tenp)) / 2) * tenp) +
-               (n / tenp * (n % tenp + 1)) +
-               self(self, n % tenp);
-    };
-    println(ans + fans(fans, n));
+        for (int l = 0; l <= mx; l++)
+            ans += dp[n][mx][l];
+    }
+    //
+    println(ans);
 }
 int32_t main()
 {
@@ -213,16 +325,6 @@ int32_t main()
 
     cerr << fixed << setprecision(10);
     auto start = std::chrono::high_resolution_clock::now();
-
-    sum[0] = 45;
-    dcnt[0] = 9;
-
-    for (int i = 1, pro = 10; i < 16; i++, pro *= 10)
-    {
-        sum[i] = sum[i - 1] * 10 + sum[0] * pro;
-
-        dcnt[i] = (i + 1) * pro * 9 + dcnt[i - 1];
-    }
 
     int T = 1;
     in(T);

@@ -155,52 +155,50 @@ const int NN = 2e5 + 5;
 
 //___________________________SOLUTION_BEGINS_HERE_______________________________
 
-vi sum(16);
-vi dcnt(16);
-
-// 9 , 99 , 999 ...
-
 void solve()
 {
     int n, m, k, inp;
     string s;
-
     //
-    cin >> k;
+    cin >> n >> k;
 
-    auto p = lower_bound(dcnt.begin(), dcnt.end(), k);
+    vi a(n);
+    vi cnt(2e5 + 10);
 
-    if (p == dcnt.begin())
+    fo(i, n)
     {
-        println((k * (k + 1)) / 2);
-        return;
+        cin >> a[i];
+        cnt[a[i]]++;
     }
 
-    int lvl = p - dcnt.begin();
+    vi precnt(2e5 + 10);
+    partial_sum(cnt.begin(), cnt.end(), precnt.begin());
 
-    n = (POWER(10ll, lvl) - 1) + (k - *(p - 1)) / (lvl + 1);
-
-    int rem = (k - *(p - 1)) % (lvl + 1);
-
-    int ans = 0;
-    for (auto fn = to_string(n + 1); rem > 0; rem--)
-        ans += fn[rem - 1] - '0';
-
-    auto fans = [](auto self, int n) -> int
+    int ans = LLONG_MIN;
+    for (int i = 2; i <= 2e5 + 10; i++)
     {
-        int lvl = to_string(n).size() - 1;
-        if (lvl == 0)
-            return (n * (n + 1)) / 2;
+        int ca = -n * k;
 
-        int tenp = POWER(10ll, lvl);
+        for (int j = 1; i * (j - 1) + 1 <= 2e5; j++)
+        {
 
-        return (sum[lvl - 1] * (n / tenp)) +
-               ((((n / tenp - 1) * (n / tenp)) / 2) * tenp) +
-               (n / tenp * (n % tenp + 1)) +
-               self(self, n % tenp);
-    };
-    println(ans + fans(fans, n));
+            int l = i * (j - 1) + 1, r = min((int)2e5, i * j);
+
+            int c = precnt[r] - precnt[l - 1];
+
+            assert(l <= r);
+            assert(c >= 0);
+
+            ca += c * j;
+            ca += min(c, cnt[j]) * k;
+        }
+
+        ans = max(ans, ca);
+    }
+
+    println(ans);
 }
+
 int32_t main()
 {
 #ifndef ONLINE_JUDGE
@@ -213,16 +211,6 @@ int32_t main()
 
     cerr << fixed << setprecision(10);
     auto start = std::chrono::high_resolution_clock::now();
-
-    sum[0] = 45;
-    dcnt[0] = 9;
-
-    for (int i = 1, pro = 10; i < 16; i++, pro *= 10)
-    {
-        sum[i] = sum[i - 1] * 10 + sum[0] * pro;
-
-        dcnt[i] = (i + 1) * pro * 9 + dcnt[i - 1];
-    }
 
     int T = 1;
     in(T);

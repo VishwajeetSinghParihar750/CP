@@ -155,51 +155,67 @@ const int NN = 2e5 + 5;
 
 //___________________________SOLUTION_BEGINS_HERE_______________________________
 
-vi sum(16);
-vi dcnt(16);
-
-// 9 , 99 , 999 ...
-
 void solve()
 {
     int n, m, k, inp;
+
     string s;
 
+    int q;
+    cin >> n >> m >> q;
+    vi a(n), b(m);
+    fo(i, n) cin >> a[i];
+    fo(i, m) cin >> b[i];
+
     //
-    cin >> k;
+    sort(all(a), greater());
+    sort(all(b), greater());
 
-    auto p = lower_bound(dcnt.begin(), dcnt.end(), k);
+    vi prea(n + 1), preb(m + 1);
+    partial_sum(a.begin(), a.end(), prea.begin() + 1);
+    partial_sum(b.begin(), b.end(), preb.begin() + 1);
 
-    if (p == dcnt.begin())
+    //
+    int maxz = n + m;
+
+    vpii ans(maxz + 1);
+
+    for (int i = 1, ai = 0, bi = 0; i <= maxz; i++)
     {
-        println((k * (k + 1)) / 2);
-        return;
+        if (ai == n)
+            bi++;
+        else if (bi == m)
+            ai++;
+        else if (a[ai] > b[bi])
+            ai++;
+        else
+            bi++;
+
+        ans[i] = {ai, bi};
     }
 
-    int lvl = p - dcnt.begin();
-
-    n = (POWER(10ll, lvl) - 1) + (k - *(p - 1)) / (lvl + 1);
-
-    int rem = (k - *(p - 1)) % (lvl + 1);
-
-    int ans = 0;
-    for (auto fn = to_string(n + 1); rem > 0; rem--)
-        ans += fn[rem - 1] - '0';
-
-    auto fans = [](auto self, int n) -> int
+    //
+    while (q--)
     {
-        int lvl = to_string(n).size() - 1;
-        if (lvl == 0)
-            return (n * (n + 1)) / 2;
+        //
+        int x, y, z;
+        cin >> x >> y >> z;
 
-        int tenp = POWER(10ll, lvl);
+        auto [ai, bi] = ans[z];
 
-        return (sum[lvl - 1] * (n / tenp)) +
-               ((((n / tenp - 1) * (n / tenp)) / 2) * tenp) +
-               (n / tenp * (n % tenp + 1)) +
-               self(self, n % tenp);
-    };
-    println(ans + fans(fans, n));
+        if (ai <= x && bi <= y)
+        {
+            println((prea[ai] - prea[0]) + (preb[bi] - preb[0]));
+        }
+        else if (ai > x)
+        {
+            println((prea[x] - prea[0]) + (preb[z - x] - preb[0]));
+        }
+        else
+        {
+            println((prea[z - y] - prea[0]) + (preb[y] - preb[0]));
+        }
+    }
 }
 int32_t main()
 {
@@ -213,16 +229,6 @@ int32_t main()
 
     cerr << fixed << setprecision(10);
     auto start = std::chrono::high_resolution_clock::now();
-
-    sum[0] = 45;
-    dcnt[0] = 9;
-
-    for (int i = 1, pro = 10; i < 16; i++, pro *= 10)
-    {
-        sum[i] = sum[i - 1] * 10 + sum[0] * pro;
-
-        dcnt[i] = (i + 1) * pro * 9 + dcnt[i - 1];
-    }
 
     int T = 1;
     in(T);
